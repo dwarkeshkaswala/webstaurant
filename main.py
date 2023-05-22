@@ -2,7 +2,7 @@ import requests, json, math, re, os
 import pandas as pd
 from bs4 import BeautifulSoup
 from time import sleep
-
+from get_urls import base_builder
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -16,7 +16,7 @@ PROXIES = {
     "https": f"http://{USER}:{PASS}@{HOST}:{PORT}/"
 }
 
-def get_list(page_no, search_term, url):
+def get_list(page_no, url):
     new_url = url+f"?page={page_no}"
     print("URL:", new_url)
     response = requests.get(new_url)
@@ -197,24 +197,24 @@ def get_details(url):
     return product_details_dict
     
 
-def list_driver(page_start, filename, org_url):
+def list_driver(page_start, cat_name, filename, org_url):
     urls = []
     i=page_start
     while True:
         print(f"Page: {i}")
-        links = get_list(i, filename, org_url)
+        links = get_list(i, org_url)
         urls.append(links)
         i+=1
         if len(links) == 0:
             break
     new_lst = [item for sublist in urls for item in sublist]
     print("Total number of links:", len(new_lst))
-    with open(f"{filename}.json", "w") as f:
+    with open(f"tests/{cat_name}/lists/{filename}.json", "w") as f:
         json.dump(new_lst, f, indent=4)
 
 
-def details_driver(filename, continue_from):
-    with open(f"{filename}.json", "r") as f:
+def details_driver(cat_name, filename, continue_from):
+    with open(f"tests/{cat_name}/lists/{filename}.json", "r") as f:
         links = json.load(f)
         
     all_details = []
@@ -226,14 +226,12 @@ def details_driver(filename, continue_from):
             details = get_details(link)
             all_details.append(details)
             
-            
-            with open(f"{filename}_details.json", "w") as f:
+            with open(f"tests/{cat_name}/details/{filename}_details.json", "w") as f:
                 json.dump(all_details, f, indent=4)
     
-
         x += 1
 
-def json2xlsx(filename):
+def json2xlsx(cat_name, filename):
     with open(f"{filename}_details.json", "r") as f:
         details = json.load(f)
 
@@ -249,23 +247,25 @@ def get_total_pages(url):
     return total_pages
 
 def main():
-    url = "https://www.webstaurantstore.com"
-    # filename = "restaurant-equipment"
-    # total_pages = get_total_pages(f"{url}/search/{filename}.html")
+    base_url = "https://www.webstaurantstore.com"
+    url = "https://www.webstaurantstore.com/refrigeration-equipment.html"
+    cat_name = "refrigeration-equipment"
 
-    with open(f"final.json", "r") as f:
+    base_builder(url, cat_name)
+
+    with open(f"tests/{cat_name}/true_links/merged_true_links", "r") as f:
         links = json.load(f)
     
-    for x in range(29, len(links)+1):
+    for x in range(1, len(links)+1):
         print(f"========================|LINK|========================")
         print(links[x])
         filename  = links[x].split("/")[-1].split(".")[0]
-        list_driver(1, filename, links[x])
-        details_driver(filename, continue_from=1)
+        list_driver(1, cat_name, filename, links[x])
+        details_driver(cat_name, filename, continue_from=1)
         # json2xlsx(filename)
     
     # filename  = links[28].split("/")[-1].split(".")[0]
-    # details_driver(filename, continue_from=2058)
+    # details_driver(cat_name, filename, continue_from=2058)
             
     
 if __name__ == "__main__":

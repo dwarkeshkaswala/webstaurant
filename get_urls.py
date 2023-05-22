@@ -58,23 +58,29 @@ def get_links(url):
 
     return true_links, false_links
 
-def driver(url, filename):
+def driver(url, cat_name):
 
-    if not os.path.exists(f"tests/{filename}/true_links"):
-        os.makedirs(f"tests/{filename}/true_links")
+    if not os.path.exists(f"tests/{cat_name}/true_links"):
+        os.makedirs(f"tests/{cat_name}/true_links")
 
-    if not os.path.exists(f"tests/{filename}/false_links"):
-        os.makedirs(f"tests/{filename}/false_links")
+    if not os.path.exists(f"tests/{cat_name}/false_links"):
+        os.makedirs(f"tests/{cat_name}/false_links")
+
+    if not os.path.exists(f"tests/{cat_name}/details"):
+        os.makedirs(f"tests/{cat_name}/details")
+
+    if not os.path.exists(f"tests/{cat_name}/lists"):
+        os.makedirs(f"tests/{cat_name}/lists")
 
     try:
-        files_dir = os.listdir(f'tests/{filename}/true_links')
+        files_dir = os.listdir(f'tests/{cat_name}/true_links')
         temp = [int(i.split("_")[2].split(".")[0]) for i in files_dir]
         x = max(temp)+1
     except:
         x = 1
 
     try:
-        files_dir = os.listdir(f'tests/{filename}/false_links')
+        files_dir = os.listdir(f'tests/{cat_name}/false_links')
         temp = [int(i.split("_")[2].split(".")[0]) for i in files_dir]
         y = max(temp)+1
     except:
@@ -83,64 +89,62 @@ def driver(url, filename):
     true_links, false_links = get_links(url)
 
     if len(true_links) > 0:
-        with open(f"tests/{filename}/true_links/true_links_{x}.json", "w") as f:
+        with open(f"tests/{cat_name}/true_links/true_links_{x}.json", "w") as f:
             json.dump(true_links, f, indent=4)
     if len(false_links) > 0:
-        with open(f"tests/{filename}/false_links/false_links_{y}.json", "w") as f:
+        with open(f"tests/{cat_name}/false_links/false_links_{y}.json", "w") as f:
             json.dump(false_links, f, indent=4)
     
 
-def looper(next_traversed_file_no, filename):
+def looper(next_traversed_file_no, cat_name):
     while True:
-        files_dir = os.listdir(f'tests/{filename}/false_links')
+        files_dir = os.listdir(f'tests/{cat_name}/false_links')
         temp = [int(i.split("_")[2].split(".")[0]) for i in files_dir]
         max_file_no = max(temp)+1
 
         if next_traversed_file_no == max_file_no:
             break
         else:
-            with open(f"tests/{filename}/false_links/false_links_{next_traversed_file_no}.json", "r") as f:
+            with open(f"tests/{cat_name}/false_links/false_links_{next_traversed_file_no}.json", "r") as f:
                 false_links = json.load(f)
             
             m=1
             for link in false_links:
                 print(f"{m}/{len(false_links)} | false_links_{next_traversed_file_no}.json")
-                driver(link, filename)
+                driver(link, cat_name)
                 m+=1
             next_traversed_file_no += 1
 
-def merge_json(filename):
-    files_dir = os.listdir(f'tests/{filename}/true_links')
+def merge_json(cat_name):
+    files_dir = os.listdir(f'tests/{cat_name}/true_links')
     final_lst = []
     for file in files_dir:
-        with open(f"tests/{filename}/true_links/{file}", "r") as f:
+        with open(f"tests/{cat_name}/true_links/{file}", "r") as f:
             true_links = json.load(f)
         final_lst += true_links
 
     final_lst = remove_dupes(final_lst)
-    with open(f"tests/{filename}/true_links/merged_true_links.json", "w") as f:
+    with open(f"tests/{cat_name}/true_links/merged_true_links.json", "w") as f:
         json.dump(final_lst, f, indent=4)
 
-    files_dir = os.listdir(f'tests/{filename}/false_links')
+    files_dir = os.listdir(f'tests/{cat_name}/false_links')
     final_lst = []
     for file in files_dir:
-        with open(f"tests/{filename}/false_links/{file}", "r") as f:
+        with open(f"tests/{cat_name}/false_links/{file}", "r") as f:
             false_links = json.load(f)
         final_lst += false_links
 
     final_lst = remove_dupes(final_lst)
-    with open(f"tests/{filename}/false_links/merged_false_links.json", "w") as f:
+    with open(f"tests/{cat_name}/false_links/merged_false_links.json", "w") as f:
         json.dump(final_lst, f, indent=4)
         
     
 
-def main():
-    url = "https://www.webstaurantstore.com/refrigeration-equipment.html"
-    filename = "refrigeration-equipment"
-    driver(url, filename)
+def base_builder(url, cat_name):
+    driver(url, cat_name)
     next_traversed_file_no = 1
-    looper(next_traversed_file_no, filename)
-    merge_json(filename)
+    looper(next_traversed_file_no, cat_name)
+    merge_json(cat_name)
 
 if __name__ == "__main__":
-    main()
+    base_builder()
