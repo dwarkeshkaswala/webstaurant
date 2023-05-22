@@ -253,7 +253,7 @@ def main():
 
     base_builder(url, cat_name)
 
-    with open(f"tests/{cat_name}/true_links/merged_true_links", "r") as f:
+    with open(f"tests/{cat_name}/true_links/merged_true_links.json", "r") as f:
         links = json.load(f)
     
     for x in range(1, len(links)+1):
