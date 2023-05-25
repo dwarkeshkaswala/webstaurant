@@ -221,8 +221,9 @@ def details_driver(cat_name, filename, continue_from):
 
     x = 1
     for link in links:
+        #GD = Getting Details
         if x >= continue_from:
-            print(f"{x}/{len(links)} | {link}")
+            print(f"GD | {x}/{len(links)} | {cat_name} > {filename} | {link}")
             details = get_details(link)
             all_details.append(details)
             
@@ -248,24 +249,53 @@ def get_total_pages(url):
 
 def main():
     base_url = "https://www.webstaurantstore.com"
-    url = "https://www.webstaurantstore.com/refrigeration-equipment.html"
-    cat_name = "refrigeration-equipment"
+    urls = [
+        "https://www.webstaurantstore.com/48429/commercial-fryers.html",
+        "https://www.webstaurantstore.com/51259/commercial-grills.html",
+        "https://www.webstaurantstore.com/14245/commercial-food-processors.html",
+        "https://www.webstaurantstore.com/14199/meat-slicers.html",
+        "https://www.webstaurantstore.com/14255/commercial-mixers.html",
+        "https://www.webstaurantstore.com/50445/outdoor-cooking-equipment.html",
+        "https://www.webstaurantstore.com/65959/smart-kitchen-appliances.html",
+        "https://www.webstaurantstore.com/shelving.html",
+        "https://www.webstaurantstore.com/57485/commercial-exhaust-hoods.html",
+        "https://www.webstaurantstore.com/50415/commercial-ice-equipment-and-supplies.html",
+        "https://www.webstaurantstore.com/plumbing-and-faucets.html",
+        "https://www.webstaurantstore.com/14251/commercial-blenders-food-blenders.html",
+        "https://www.webstaurantstore.com/55497/commercial-scales.html",
+        "https://www.webstaurantstore.com/14279/vacuum-packaging-machines.html",
+        "https://www.webstaurantstore.com/62457/food-packaging-machines.html",
+        "https://www.webstaurantstore.com/67563/candy-making-machines.html",
+    ]
+    url = "https://www.webstaurantstore.com/15037/commercial-restaurant-ranges.html"
+    cat_name = url.split("/")[-1].split(".")[0]
 
     base_builder(url, cat_name)
+
+    print("\nBase Build... Done\n")
 
     with open(f"tests/{cat_name}/true_links/merged_true_links.json", "r") as f:
         links = json.load(f)
     
-    for x in range(1, len(links)+1):
-        print(f"========================|LINK|========================")
-        print(links[x])
+    for x in range(1, len(links)):
         filename  = links[x].split("/")[-1].split(".")[0]
+        link_name = links[x]
+        print(f"|========================| {cat_name} |========================|")
+        print(f"{filename} | {link_name}")
+        print(f"|==========================================================================================|\n")
+    
         list_driver(1, cat_name, filename, links[x])
         details_driver(cat_name, filename, continue_from=1)
         # json2xlsx(filename)
     
-    # filename  = links[28].split("/")[-1].split(".")[0]
-    # details_driver(cat_name, filename, continue_from=2058)
+    # print(f"|========================| {cat_name} |========================|")
+    # print(links[124])
+    # print(f"|==============================================================================================|\n")
+
+    # filename  = links[124].split("/")[-1].split(".")[0]
+    # print(filename)
+    # # filename="_1"
+    # details_driver(cat_name, filename, continue_from=1)
             
     
 if __name__ == "__main__":
