@@ -30,6 +30,7 @@ def link_checker(url):
     
 def get_links(url):
 
+    go = False
     try:
         # print(url)
         response = requests.get(url)
@@ -37,50 +38,56 @@ def get_links(url):
         main_div = soup.find("div", id="main")
         photo_grids = main_div.select('div[data-testid="Photo Grid Categories"]')
         carousels = main_div.select('div[data-testid="enhanced-carousel-background"]')
+        go = True
     except:
-        print("Sleeping for 90 seconds..........")
-        sleep(90)
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
-        main_div = soup.find("div", id="main")
-        photo_grids = main_div.select('div[data-testid="Photo Grid Categories"]')
-        carousels = main_div.select('div[data-testid="enhanced-carousel-background"]')
-
-    links = []
-    for photo_grid in photo_grids:
-        for a in photo_grid.select("a"):
-            if not "https://www.webstaurantstore.com" in a["href"].strip():
-                links.append("https://www.webstaurantstore.com"+a["href"].strip())
-            else:
-                links.append(a["href"].strip())
-    
-    for carousel in carousels:
-        for a in carousel.select("a"):
-            if not "https://www.webstaurantstore.com" in a["href"].strip():
-                links.append("https://www.webstaurantstore.com"+a["href"].strip())
-            else:
-                links.append(a["href"].strip())
-                
-    matchers = ['feature','?filter','new/?category', 'specials.html?', '/search', 'vendor', url]
-    cleaned = [s for s in links if not any(xs in s for xs in matchers)]
-
-    cleaned = remove_dupes(cleaned)
-
-    true_links = []
-    false_links = []
-    temp_true = []
-
-    for link in cleaned:
-        
-        status = link_checker(link)
-        if status==True:
-            true_links.append(link)
-        else:
-            false_links.append(link)
-        
+        try:
+            print("Sleeping for 90 seconds..........")
+            sleep(90)
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            main_div = soup.find("div", id="main")
+            photo_grids = main_div.select('div[data-testid="Photo Grid Categories"]')
+            carousels = main_div.select('div[data-testid="enhanced-carousel-background"]')
+            go = True
+        except:
+            print(f"Link Skipped Checking: {url}")
             
+    if go:
+        links = []
+        for photo_grid in photo_grids:
+            for a in photo_grid.select("a"):
+                if not "https://www.webstaurantstore.com" in a["href"].strip():
+                    links.append("https://www.webstaurantstore.com"+a["href"].strip())
+                else:
+                    links.append(a["href"].strip())
+        
+        for carousel in carousels:
+            for a in carousel.select("a"):
+                if not "https://www.webstaurantstore.com" in a["href"].strip():
+                    links.append("https://www.webstaurantstore.com"+a["href"].strip())
+                else:
+                    links.append(a["href"].strip())
+                    
+        matchers = ['feature','?filter','new/?category', 'specials.html?', '/search', 'vendor', url]
+        cleaned = [s for s in links if not any(xs in s for xs in matchers)]
 
-    return true_links, false_links
+        cleaned = remove_dupes(cleaned)
+
+        true_links = []
+        false_links = []
+        temp_true = []
+
+        for link in cleaned:
+            
+            status = link_checker(link)
+            if status==True:
+                true_links.append(link)
+            else:
+                false_links.append(link)
+        
+        return true_links, false_links
+    else:
+        return [], []
 
 def driver(url, cat_name):
 

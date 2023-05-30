@@ -88,8 +88,11 @@ def get_details(url):
     except:
         price = ""
 
-    details_div = soup.find("div", id="details-group")
-    details = details_div.find("p").text.strip()
+    try:
+        details_div = soup.find("div", id="details-group")
+        details = details_div.find("p").text.strip()
+    except:
+        details = ""
 
     try:
         upc_code = soup.find("div", class_="product__stat").find_all("span")[-1].text.strip()
@@ -232,12 +235,12 @@ def details_driver(cat_name, filename, continue_from):
     
         x += 1
 
-def json2xlsx(cat_name, filename):
-    with open(f"{filename}_details.json", "r") as f:
+def json2xlsx(input, output):
+    with open(input, "r") as f:
         details = json.load(f)
 
     df = pd.DataFrame(details)
-    df.to_excel(f"{filename}_details.xlsx", index=False)
+    df.to_excel(output, index=False)
 
 def get_total_pages(url):
     page = requests.get(url)
@@ -249,19 +252,12 @@ def get_total_pages(url):
 
 def main():
     base_url = "https://www.webstaurantstore.com"
-    execute = False
+    execute = True
     if execute:
-        urls = [
-            "https://www.webstaurantstore.com/shelving.html",
-            "https://www.webstaurantstore.com/57485/commercial-exhaust-hoods.html",
-            "https://www.webstaurantstore.com/50415/commercial-ice-equipment-and-supplies.html",
-            "https://www.webstaurantstore.com/plumbing-and-faucets.html",
-            "https://www.webstaurantstore.com/14251/commercial-blenders-food-blenders.html",
-            "https://www.webstaurantstore.com/55497/commercial-scales.html",
-            "https://www.webstaurantstore.com/14279/vacuum-packaging-machines.html",
-            "https://www.webstaurantstore.com/62457/food-packaging-machines.html",
-            "https://www.webstaurantstore.com/67563/candy-making-machines.html",
-        ]
+        urls=[
+                "https://www.webstaurantstore.com/office-products.html"
+            ]
+
 
         for url in urls:
             # url = "https://www.webstaurantstore.com/15037/commercial-restaurant-ranges.html"
@@ -274,7 +270,7 @@ def main():
             with open(f"tests/{cat_name}/true_links/merged_true_links.json", "r") as f:
                 links = json.load(f)
             
-            for x in range(1, len(links)):
+            for x in range(0, len(links)):
                 filename  = links[x].split("/")[-1].split(".")[0]
                 link_name = links[x]
                 print(f"|========================| {cat_name} |========================|")
@@ -286,17 +282,48 @@ def main():
                 # json2xlsx(filename)
     else:
         
-        cat_name = "shelving"
+        cat_name = "restaurant-tabletop-supplies"
         with open(f"tests/{cat_name}/true_links/merged_true_links.json", "r") as f:
                 links = json.load(f)
         print(f"|========================| {cat_name} |========================|")
         print(links[5])
         print(f"|==============================================================================================|\n")
 
-        filename  = links[5].split("/")[-1].split(".")[0]
+        filename  = links[50].split("/")[-1].split(".")[0]
         print(filename)
-        details_driver(cat_name, filename, continue_from=139)
+        details_driver(cat_name, filename, continue_from=2668)
             
-    
+def remove_dupes_from_lst_of_dct(lst_of_dct):
+    return [dict(t) for t in {tuple(d.items()) for d in lst_of_dct}]
+
+def merge_all_details():
+    dirs = os.listdir("tests")
+    dirs.pop(1)
+    all_details = []
+    x=1
+    dirs=["office-products"]
+    for dir in dirs:
+        print(f"{x}/{len(dirs)}")
+        if dir != ".DS_Store":
+            files = os.listdir(f"tests/{dir}/details")
+            for file in files:
+                if file != ".DS_Store":
+                    with open(f"tests/{dir}/details/{file}", "r") as f:
+                        details = json.load(f)
+                    all_details.extend(details)
+        x+=1
+    print(f"Length of file: {len(all_details)}")
+    all_details = remove_dupes_from_lst_of_dct(all_details)
+    print(f"Length of file After: {len(all_details)}")
+    with open("done/all_details.json", "w") as f:
+        json.dump(all_details, f, indent=4)
+    # json2xlsx("done/all_details.json","done/all_details.xlsx")
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    # merge_all_details()
+    
+    pass
+    
+    
